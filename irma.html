@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Loja de Brinquedos</title>
+  <style>
+    body {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      background: #111;
+      color: #f44336;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      color: #ff1e1e;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 5px black;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #1a1a1a;
+      border: 2px solid #ff1e1e;
+    }
+    th, td {
+      border: 1px solid #ff1e1e;
+      padding: 12px;
+      font-size: 1.1em;
+    }
+    th {
+      background: #ff1e1e;
+      color: white;
+      text-transform: uppercase;
+    }
+    td {
+      color: #f5f5f5;
+    }
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      border: 2px solid #ff1e1e;
+      background: #000;
+      color: #fff;
+      font-weight: bold;
+      text-align: center;
+    }
+    button {
+      background: #ff1e1e;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1.2em;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: 0.2s;
+      border-radius: 5px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #d41515;
+      transform: scale(1.05);
+    }
+    #resumo {
+      background: #1a1a1a;
+      border: 2px solid #ff1e1e;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      color: #fff;
+      text-align: left;
+    }
+    h2, h3 {
+      color: #ff1e1e;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Loja de Brinquedos</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Brinquedo</th>
+        <th>Preço</th>
+        <th>Quantidade</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+
+  <button onclick="calcularTotal()">Finalizar Compra</button>
+
+  <div id="resumo"></div>
+  <div id="botoesExportar" style="display:none;">
+    <button onclick="exportarDiscord()">Exportar para Discord</button>
+    <button onclick="exportarCSV()">Exportar para Google Planilhas</button>
+  </div>
+
+  <script>
+    const brinquedos = {
+      "HK": { nome: "Helicóptero Kid", preco: 3500 },
+      "FS": { nome: "Fantoche Show", preco: 7000 },
+      "MAG": { nome: "Mega Arco Giratório", preco: 25000 },
+      "UZI": { nome: "Ursinho Zigue-Zague Interativo", preco: 13000 },
+      "TEC": { nome: "Tenda Encantada Colorida", preco: 14000 },
+      "MTR": { nome: "Montanha de Trilhos Radicais", preco: 22000 },
+      "TMP": { nome: "Tapete Musical Pulante", preco: 18000 },
+      "FMS": { nome: "Fliperama Mini Superdivertido", preco: 26600 },
+      "AK": { nome: "Arca Kids", preco: 32000 },
+      "G3": { nome: "Gangorra 3 em 1", preco: 38000 },
+      "G3M2": { nome: "Grande Game de Memória 2.0", preco: 38000 }
+    };
+
+    const lista = document.getElementById("lista");
+
+    // Criar tabela
+    for (let codigo in brinquedos) {
+      let item = brinquedos[codigo];
+      let row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${codigo}</td>
+        <td>${item.nome}</td>
+        <td>R$ ${item.preco.toLocaleString("pt-BR")}</td>
+        <td><input type="number" min="0" value="0" id="qtd_${codigo}"></td>
+      `;
+      lista.appendChild(row);
+    }
+
+    let resumoTexto = "";
+
+    function calcularTotal() {
+      let resumo = "<h2>Resumo da Compra</h2><ul>";
+      resumoTexto = "Resumo da Compra:\n";
+      let total = 0;
+
+      for (let codigo in brinquedos) {
+        let qtd = parseInt(document.getElementById("qtd_" + codigo).value);
+        if (qtd > 0) {
+          let subtotal = brinquedos[codigo].preco * qtd;
+          total += subtotal;
+          resumo += `<li>${qtd}x ${brinquedos[codigo].nome} - R$ ${subtotal.toLocaleString("pt-BR")}</li>`;
+          resumoTexto += `${qtd}x ${brinquedos[codigo].nome} - R$ ${subtotal.toLocaleString("pt-BR")}\n`;
+        }
+      }
+
+      resumo += `</ul><h3>Total: R$ ${total.toLocaleString("pt-BR")}</h3>`;
+      resumoTexto += `\nTOTAL: R$ ${total.toLocaleString("pt-BR")}`;
+      document.getElementById("resumo").innerHTML = resumo;
+      document.getElementById("botoesExportar").style.display = "block";
+    }
+
+    function exportarDiscord() {
+      navigator.clipboard.writeText(resumoTexto).then(() => {
+        alert("Resumo copiado! Agora é só colar no Discord.");
+      });
+    }
+
+    function exportarCSV() {
+      let linhas = resumoTexto.split("\n").map(l => l.replace(" - R$", ",R$"));
+      let csvContent = "data:text/csv;charset=utf-8," + linhas.join("\n");
+      let link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "compra_brinquedos.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+
+</body>
+</html>
